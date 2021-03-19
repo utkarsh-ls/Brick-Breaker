@@ -134,6 +134,7 @@ class Ball(Obj):
                     d_vy = self.y - P.c
                     self.vy = self.vy + d_vy//P.size - 2
                     var = 0
+                    os.system("aplay -q sound/paddle_collision.wav &")
                     break
             if self.through==0 and var:
                 self.y = self.y + (self.vy*(self.x-prev_x[0]))//self.vx

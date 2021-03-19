@@ -1,4 +1,5 @@
 from objects import *
+from ball import *
 
 # paddle = ['{====','====}']
 ufo = []
@@ -12,6 +13,8 @@ ufo.append(["  \\__","_____","_____","_____","_____","_____","_____","___/ "])  
 ufo.append(["     ","     ","   \\x"," x x ","x x x"," x/  ","     ","     "])      # 8
 ufo.append(["     ","     ","    \\","x_x_x","_x_x_","x/   ","     ","     "])      # 9
 
+bombs = []
+
 class UFO(Obj):
 
     def __init__(self, x, y):
@@ -22,7 +25,12 @@ class UFO(Obj):
         self.col_size = 8
         self.health = 100
         self.update_block(ufo)
-        self.color = colors.bg.green
+        # self.color = colors.bg.green
+    
+    defense1 = True
+    defense2 = True
+    crit_health1 = 70
+    crit_health2 = 30
     
     def update_block(self,paddle):
         """update paddle's position in the board"""
@@ -48,6 +56,24 @@ class UFO(Obj):
                 itr = itr + 5
                 row.append(val)
             self.board_pos.append(row)
+            
+    def engage(self, board, balls, powerups, bombs, bullets, num):
+        """Creates bricks around boss if health falls below crit level"""
+        row_num = self.x + self.row_size
+        for b in balls:
+            if b.x == row_num:
+                b.x = b.x + 1
+        for b in powerups:
+            if b.x == row_num:
+                b.x = b.x + 1
+        for b in bombs:
+            if b.x == row_num:
+                b.x = b.x + 1
+        for b in bullets:
+            if b.x == row_num:
+                b.x = b.x + 1
+        for j in range(1,21):
+            board[row_num][j] = brickcol[num]
 
     # def reset_block(self):
     #     """resets paddle's position in the board (for size"""
@@ -75,5 +101,33 @@ class UFO(Obj):
         self.c = self.c + 1
         self.y = (self.c+4)//5
         self.update_block(ufo)
+
+class Bomb(Ball):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.vx = -2
+        self.vy = 0
+        self.collide = 0
+        self.update_block()
+        self.init_board = brickcol[0]
+
+    ball_type = colors.fg.cyan + 'ꝺ'
+
+    def move(self):
+        prev_x = self.x
+        prev_y = self.y
+        self.x = self.x - self.vx
+        
+        self.update_block()
+        # self.update_path(prev_x,prev_y)
+        
+    def collisions(self,paddle):
+        if self.x >= 30:
+            if self.y >= paddle.c and self.y - paddle.c < 5*paddle.size - 1:
+                return 2
+            else:
+                return 1
+        return 0
 
 boss = UFO(1,31)

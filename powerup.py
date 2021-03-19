@@ -45,6 +45,7 @@ class Powerup(Obj):
         #     power_up = Power5(self.x, self.y, vx, vy)
         # else:
         power_up = Power6(self.x, self.y, vx, vy)
+        os.system("aplay -q sound/powerup.wav &")
         powerups.append(power_up)
 
     def update(self, pw, i):
@@ -330,7 +331,7 @@ class Power6(Powerup):
                 board[P.x][P.y+cnt] = P.board_pos[cnt]
             P.shoot = False
             
-class Bullet(Ball):
+class Bullet(Ball): # change for BOSS
     """Bulllet's for the shooting paddle powerup"""
     def __init__(self, x, y):
         self.x = x

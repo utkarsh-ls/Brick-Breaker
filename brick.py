@@ -13,8 +13,9 @@ class Brick(Obj):
     def brick_breaker(self,col,vx,vy):
         """For breaking bricks"""
         board[self.x][self.y] = brickcol[col-1]
-        powerup = Powerup(self.x,self.y)
-        powerup.isCreate(vx,(vy+4)//5)
+        if not (level == 3 and vx < 13):
+            powerup = Powerup(self.x,self.y)
+            powerup.isCreate(vx,(vy+4)//5)
         
 class Brick6(Obj):
     """Class for rainbow bricks"""
