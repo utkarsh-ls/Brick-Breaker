@@ -14,13 +14,14 @@ from brick import *
 from paddle import *
 from ball import *
 from powerup import *
+from finalBoss import *
 
 # if M.sound == 1:
 os.system('spd-say -tfemale3 -r-20 "Welcome to the classic block breaker game"')
 
 FPS = 4
 # For moving bricks down
-TIME_QUANTA = 10
+TIME_QUANTA = 1
 
 
 def isData():
@@ -29,6 +30,7 @@ def isData():
 
 
 setup1(board)
+P.setup = True     # change later ----------------------------------------------------------------------------------------------------------------------------------------------
 Print()
 old_settings = termios.tcgetattr(sys.stdin)
 start = time.time()
@@ -67,7 +69,7 @@ try:
                 bullet = Bullet(P.x-1, P.c)
                 # bullet.shoot()
                 bullets.append(bullet)
-                bullet = Bullet(P.x-1, P.c+P.size*5)
+                bullet = Bullet(P.x-1, P.c+P.size*5-1)
                 # bullet.shoot()
                 bullets.append(bullet)
 
@@ -234,6 +236,14 @@ try:
             Print()
             print('\n')
 
+            print(' BOSS Health: \n [',end='')
+            for i in range(100):
+                if i < boss.health:
+                    print('#',end='')
+                else:
+                    print('-',end='')
+            print(']  (',boss.health,'% ) \n')
+            
             pw = Power0(1, 1, 1, 1)
             if rem_time[0] > 0:
                 print(pw.board_pos,
@@ -244,7 +254,8 @@ try:
                       '\tSHRINK PADDLE\tRemaining time: ', rem_time[1])
             pw = Power2(1, 1, 1, 1)
             if len(balls) > 1:
-                print(pw.board_pos, '\tBALL MULTIPLIER\tRemaining balls: ', len(balls))
+                print(pw.board_pos,
+                      '\tBALL MULTIPLIER\tRemaining balls: ', len(balls))
             pw = Power3(1, 1, 1, 1)
             if rem_time[3] > 0:
                 print(pw.board_pos,
@@ -261,6 +272,7 @@ try:
             if rem_time[6] > 0:
                 print(pw.board_pos,
                       '\tSHOOTING PADDLE\tRemaining time: ', rem_time[6])
+                
 
             if P.play == 0:
                 time.sleep(2)
@@ -337,7 +349,7 @@ try:
             
             B = Ball(29, y, 1, (y-P.c)//P.size - 2)
             balls.append(B)
-            setup3(board)
+            setup3(board, ufo)
             P.setup = False
             Print()
 
@@ -358,9 +370,19 @@ try:
                                 board[B.x][(B.y+4)//5] = brickcol[0]
                                 B.left()
                                 board[B.x][(B.y+4)//5] = B.board_pos
-                    # could make a function in paddle.py
+                    
                     for cnt in range(0, P.size+1):
                         board[P.x][P.y+cnt] = brickcol[0]
+                    
+                    if P.level == 3 and P.y > 3 and P.y < 16:
+                        for i in range(boss.row_size):
+                            for j in range(boss.col_size+1):
+                                board[boss.x+i][boss.y+j] = brickcol[0]
+                        boss.left(ufo)
+                        for i in range(boss.row_size):
+                            for j in range(boss.col_size+1):
+                                board[boss.x+i][boss.y+j] = boss.board_pos[i][j]
+                    
                     P.left()
                     for cnt in range(0, P.size+1):
                         board[P.x][P.y+cnt] = P.board_pos[cnt]
@@ -375,6 +397,16 @@ try:
                                 board[B.x][(B.y+4)//5] = B.board_pos
                     for cnt in range(0, P.size+1):
                         board[P.x][P.y+cnt] = brickcol[0]
+                    
+                    if P.level == 3 and P.y > 3 and P.y < 16:
+                        for i in range(boss.row_size):
+                            for j in range(boss.col_size+1):
+                                board[boss.x+i][boss.y+j] = brickcol[0]
+                        boss.right(ufo)
+                        for i in range(boss.row_size):
+                            for j in range(boss.col_size+1):
+                                board[boss.x+i][boss.y+j] = boss.board_pos[i][j]
+                    
                     P.right()
                     for cnt in range(0, P.size+1):
                         board[P.x][P.y+cnt] = P.board_pos[cnt]

@@ -15,6 +15,11 @@ def moveBricks(board, P, balls):
                     board[i-1][j] == brickcol[5] or \
                     board[i-1][j] == brickcol[6]:
                 temp_board[i][j] = board[i-1][j]
+    if P.level == 3:
+        for i in range(boss.row_size):
+            for j in range(boss.col_size+1):
+                temp_board[boss.x+i][boss.y+j] = boss.board_pos[i][j]
+
     for i in range(0, 41):
         board[i] = temp_board[i]
     updateRainbowBrick(board)
@@ -23,6 +28,7 @@ def moveBricks(board, P, balls):
     # print(len(temp_board), '***********')
     # for i in range(0, len(temp_board)):
     #     print(len(temp_board[i]), '  /=> i')
+    
     for cnt in range (0,P.size+1):
         board[P.x][P.y+cnt] = P.board_pos[cnt]
     

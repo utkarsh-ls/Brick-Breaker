@@ -19,7 +19,7 @@ class Paddle(Obj):
     grab = 1
     bricks_rem = 0
     play = 0
-    level = 1
+    level = 3       # change here ----------------------------------------------------------------------------------------------------------------------------------
     setup = False
     shoot = False
 
