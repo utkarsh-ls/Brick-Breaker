@@ -24,7 +24,7 @@ FPS = 4
 TIME_QUANTA = 7
 # For dropping BOMBS
 BOMB_TIME = 7
-
+# ali = []
 
 def isData():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [],
@@ -32,8 +32,8 @@ def isData():
 
 
 setup1(board)
-P.setup = True     # change later ----------------------------------------------------------------------------------------------------------------------------------------------
-Print()
+# P.setup = True     # change later ----------------------------------------------------------------------------------------------------------------------------------------------
+Print(powerups)
 old_settings = termios.tcgetattr(sys.stdin)
 start = time.time()
 counter = 0
@@ -49,19 +49,19 @@ try:
             
             # boss music
             if P.level == 3:
-                boss_music_time = 123
+                boss_music_time = 52
                 if L3_time%boss_music_time == 0:
                     os.system("aplay -q sound/boss_music.wav &")
                 L3_time = L3_time + 1
             # update powerup's time
-            for pw in powerups:
+            for i, pw in enumerate(powerups):
                 if pw.active == 1:
                     pw.time = pw.time - 1
                     pw.timeLeft(pw)
             # change rainbow brick's color
             if P.time % 3 == 0:
                 for r_brick in r_bricks:
-                    r_brick.changeColor()
+                    r_brick.changeColor(board)
             # drop bombs in level 3 (Boss level)
             if P.level == 3 and P.time % BOMB_TIME == BOMB_TIME-1:
                 col = random.randint(boss.c, boss.c+5*boss.col_size-1)
@@ -72,13 +72,11 @@ try:
             if P.time % t == t-1:
                 board = moveBricks(board, P, balls)
                 # P.play = 0
-                Print()
+                Print(powerups)
 
-            for i, pw in enumerate(powerups):
-                pw.update(pw, i)
-            for pw_index in powerups_del:
-                powerups.pop(pw_index)
-            powerups_del.clear()
+            # for i, pw in enumerate(powerups):
+            #    pw.update(pw,i)
+            # powerups = [pw for pw in powerups if pw.passive != 1]
 
             if P.shoot == True:
                 bullet = Bullet(P.x-1, P.c)
@@ -105,10 +103,8 @@ try:
                     for t in range(len(rem_time)):
                         rem_time[t] = 0
                     for i, pw in enumerate(powerups):
-                        pw.delete(pw, i)
-                    for pw_index in powerups_del:
-                        powerups.pop(pw_index)
-                    powerups_del.clear()
+                        pw.delete(pw)
+                    # powerups = [pw for pw in powerups if pw.passive != 1]
                     powerups.clear()
                     # -----------------------------------------------------------------
                     balls.clear()
@@ -117,13 +113,17 @@ try:
                     # -----------------------------------------------------------------
                     P.grab = 1
                     y = random.randint(P.c, P.c+5*P.size-1)
-                    B = Ball(29, P.c+(5*P.size)//2, 2, (y-P.c)//P.size - 2)
+                    B = Ball(29, y, 2, (y-P.c)//P.size - 2)
                     balls.append(B)
                 elif isCollide == 1:
                     # (bombs drops out of map)
                     bombs.remove(B)
                 else:
-                    B.init_board = board[B.x][(B.y+4)//5]
+                    temp_cell = brickcol[0]
+                    for i in range(1, 7):
+                        if board[B.x][(B.y+4)//5] == brickcol[i]:
+                            temp_cell = brickcol[i]
+                    B.init_board = temp_cell
                     board[B.x][(B.y+4)//5] = B.board_pos
 
             for B in bullets:
@@ -146,10 +146,10 @@ try:
                                     brick = Brick5(x[0], x[1])
                                     if x[1] < 10:
                                         brick.explode_bricks(
-                                            bricks1, B.vx, B.vy)
+                                            bricks1, B.vx, B.vy, board, powerups)
                                     else:
                                         brick.explode_bricks(
-                                            bricks2, B.vx, B.vy)
+                                            bricks2, B.vx, B.vy, board, powerups)
                                     P.score = P.score + 50*brick.bricks_exploded
                                 else:
                                     os.system("aplay -q sound/brick_collision.wav &")
@@ -164,7 +164,7 @@ try:
 
                                         if rainbow_brick == 0:
                                             brick = Brick(x[0], x[1])
-                                            brick.brick_breaker(i, B.vx, B.vy)
+                                            brick.brick_breaker(i, B.vx, B.vy, board, powerups, 0)
 
                                         P.score = P.score + 10
                                 break
@@ -218,7 +218,7 @@ try:
                 # powerups.clear()
                 P.setup = True
             if P.play == 0:
-                Print()
+                Print(powerups)
                 print('\n')
                 time.sleep(2)
 
@@ -230,6 +230,7 @@ try:
                 board[B.x][(B.y+4)//5] = brickcol[0]
                 B.move()
                 prev_x = []
+                # ali = []
                 for x in B.path:
                     if(prev_x and board[x[0]][x[1]] != brickcol[0]):
 
@@ -241,14 +242,14 @@ try:
                                     brick = Brick5(x[0], x[1])
                                     if x[1] < 10:
                                         brick.explode_bricks(
-                                            bricks1, B.vx, B.vy)
+                                            bricks1, B.vx, B.vy, board, powerups)
                                     else:
                                         brick.explode_bricks(
-                                            bricks2, B.vx, B.vy)
+                                            bricks2, B.vx, B.vy, board, powerups)
                                     P.score = P.score + 50*brick.bricks_exploded
-                                elif B.through == 0:
+                                elif B.through == 0 and B.fire == 0:
                                     os.system("aplay -q sound/brick_collision.wav &")
-                                    if i <= 3:
+                                    if i <= 4:
                                         rainbow_brick = 0
                                         # rainbow bricks
                                         for r_brick in r_bricks:
@@ -257,37 +258,56 @@ try:
                                                 r_brick.setColor()
                                                 break
 
-                                        if rainbow_brick == 0:
+                                        if rainbow_brick == 0 and i <= 3:
                                             brick = Brick(x[0], x[1])
-                                            brick.brick_breaker(i, B.vx, B.vy)
+                                            brick.brick_breaker(i, B.vx, B.vy, board, powerups, 0)
 
                                         P.score = P.score + 10
-                                else:
+                                elif B.fire == 0:
+                                    # through ball
                                     brick = Brick(x[0], x[1])
-                                    brick.brick_breaker(1, B.vx, B.vy)
+                                    brick.brick_breaker(1, B.vx, B.vy, board, powerups, 0)
                                     P.score = P.score + 10*i
+                                else:
+                                    # fire ball
+                                    os.system("aplay -q sound/exploding_brick.wav &")
+                                    rainbow_brick = 0
+                                    # rainbow bricks
+                                    for r_brick in r_bricks:
+                                        if r_brick.x == x[0] and r_brick.y == x[1] and r_brick.rainbow == 1:
+                                            rainbow_brick = 1
+                                            r_brick.setColor()
+                                            P.score = P.score + 10
+                                            break
+
+                                    if rainbow_brick == 0:
+                                        brick = Brick(x[0], x[1])
+                                        brick.brick_breaker(i, B.vx, B.vy, board, powerups, 1)
+                                        P.score = P.score + 10*brick.bricks_broken
+                                # ali = powerups
                                 break
 
                         # for boss collision create defensive bricks
-                        if P.level == 3 and boss.defense1 == True and boss.defense2 == True:
+                        if P.level == 3:
                             if x[0] >= boss.x and x[0] < boss.x+boss.row_size:
+                                c = 0
+                                if (boss.c+4) % 5:
+                                    c = 1
                                 for i in range(boss.row_size):
-                                    c = 0
-                                    if (boss.c+4) % 5:
-                                        c = 1
                                     for j in range(boss.col_size+c):
                                         if board[x[0]][x[1]] == boss.board_pos[i][j]:
                                             boss.health -= (abs(B.vx) +
                                                             abs(B.vy))
                                             if boss.health < 0:
                                                 boss.health = 0
-                                            if boss.health <= boss.crit_health1 and boss.defense1 == True:
-                                                boss.engage(
-                                                    board, balls, powerups, bombs, bullets, 1)
-                                                boss.defense1 = False
-                                            elif boss.health <= boss.crit_health2 and boss.defense2 == True:
+                                            if boss.health <= boss.crit_health2 and boss.defense2 == True:
                                                 boss.engage(
                                                     board, balls, powerups, bombs, bullets, 2)
+                                                boss.defense1 = False
+                                                boss.defense2 = False
+                                            elif boss.health <= boss.crit_health1 and boss.defense1 == True:
+                                                boss.engage(
+                                                    board, balls, powerups, bombs, bullets, 1)
                                                 boss.defense1 = False
                                             break
 
@@ -310,26 +330,17 @@ try:
                         for t in range(len(rem_time)):
                             rem_time[t] = 0
                         for i, pw in enumerate(powerups):
-                            pw.delete(pw, i)
-                        for pw_index in powerups_del:
-                            powerups.pop(pw_index)
-                        powerups_del.clear()
+                            pw.delete(pw)
+                        # powerups = [pw for pw in powerups if pw.passive != 1]
                         powerups.clear()
                         bombs.clear()
                         bullets.clear()
                         P.grab = 1
                         y = random.randint(P.c, P.c+5*P.size-1)
-                        B = Ball(29, P.c+(5*P.size)//2, 2, (y-P.c)//P.size - 2)
+                        B = Ball(29, y, 2, (y-P.c)//P.size - 2)
                         balls.append(B)
                 else:
                     board[B.x][(B.y+4)//5] = B.board_pos
-
-            # for i,pw in enumerate(powerups):
-            #     pw.update(pw,i)
-            # for pw_index in powerups_del:
-            #     # powerups.remove(pw)
-            #     powerups.pop(pw_index)
-            # powerups_del.clear()
 
             bricks_rem = 0
             for row in board:
@@ -342,16 +353,27 @@ try:
                 P.play = 0
                 P.setup = True
 
-            Print()
+            Print(powerups)
             print('\n')
+            
+            # print(ali)
+            for i, pw in enumerate(powerups):
+               pw.update(pw,i)
+            powerups = [pw for pw in powerups if pw.passive != 1 ]
+            # print(powerups)
+            # for pw_index in powerups_del:
+            #     # powerups.remove(pw)
+            #     powerups.pop(pw_index)
+            # powerups_del.clear()
 
-            print(' BOSS Health: \n [', end='')
-            for i in range(100):
-                if i < boss.health:
-                    print('#', end='')
-                else:
-                    print('-', end='')
-            print(']  (', boss.health, '% ) \n')
+            if P.level == 3:
+                print(' BOSS Health: \n [', end='')
+                for i in range(100):
+                    if i < boss.health:
+                        print('#', end='')
+                    else:
+                        print('-', end='')
+                print(']  (', boss.health, '% ) \n')
 
             pw = Power0(1, 1, 1, 1)
             if rem_time[0] > 0:
@@ -381,6 +403,10 @@ try:
             if rem_time[6] > 0:
                 print(pw.board_pos,
                       '\tSHOOTING PADDLE\tRemaining time: ', rem_time[6])
+            pw = Power7(1, 1, 1, 1)
+            if rem_time[7] > 0:
+                print(pw.board_pos,
+                      '\tFIRE BALL\tRemaining time: ', rem_time[7])
 
             if P.play == 0:
                 time.sleep(2)
@@ -429,10 +455,8 @@ try:
             for t in range(len(rem_time)):
                 rem_time[t] = 0
             for i, pw in enumerate(powerups):
-                pw.delete(pw, i)
-            for pw_index in powerups_del:
-                powerups.pop(pw_index)
-            powerups_del.clear()
+                pw.delete(pw)
+            # powerups = [pw for pw in powerups if pw.passive != 1]
             powerups.clear()
             bombs.clear()
             bullets.clear()
@@ -442,28 +466,25 @@ try:
             balls.append(B)
             setup2(board)
             P.setup = False
-            Print()
+            Print(powerups)
 
         elif P.level == 3 and P.setup == True:
             balls.clear()
             for t in range(len(rem_time)):
                 rem_time[t] = 0
             for i, pw in enumerate(powerups):
-                pw.delete(pw, i)
-            for pw_index in powerups_del:
-                powerups.pop(pw_index)
-            powerups_del.clear()
+                pw.delete(pw)
+            # powerups = [pw for pw in powerups if pw.passive != 1]
             powerups.clear()
             bombs.clear()
             bullets.clear()
             P.grab = 1
             y = random.randint(P.c, P.c+5*P.size-1)
-
             B = Ball(29, y, 1, (y-P.c)//P.size - 2)
             balls.append(B)
             setup3(board, ufo)
             P.setup = False
-            Print()
+            Print(powerups)
 
         if isData():
             inp = sys.stdin.read(1)
@@ -472,7 +493,51 @@ try:
                 break
             if inp == 'p':
                 P.play = 1 - P.play
-                Print()
+                Print(powerups)
+            if inp == 'n' and P.level <= 2:
+                # increase 1 level
+                balls.clear()
+                for t in range(len(rem_time)):
+                    rem_time[t] = 0
+                for i, pw in enumerate(powerups):
+                    pw.delete(pw)
+                # powerups = [pw for pw in powerups if pw.passive != 1]
+                powerups.clear()
+                bombs.clear()
+                bullets.clear()
+                P.grab = 1
+                y = random.randint(P.c, P.c+5*P.size-1)
+                B = Ball(29, y, 1, (y-P.c)//P.size - 2)
+                balls.append(B)
+                if P.level == 1:
+                    setup2(board)
+                elif P.level == 2:
+                    setup3(board, ufo)
+                P.level += 1
+                P.setup = False
+                Print(powerups)
+            if inp == 'm' and P.level >= 2:
+                # decrease 1 level
+                balls.clear()
+                for t in range(len(rem_time)):
+                    rem_time[t] = 0
+                for i, pw in enumerate(powerups):
+                    pw.delete(pw)
+                # powerups = [pw for pw in powerups if pw.passive != 1]
+                powerups.clear()
+                bombs.clear()
+                bullets.clear()
+                P.grab = 1
+                y = random.randint(P.c, P.c+5*P.size-1)
+                B = Ball(29, y, 1, (y-P.c)//P.size - 2)
+                balls.append(B)
+                if P.level == 3:
+                    setup2(board)
+                elif P.level == 2:
+                    setup1(board)
+                P.level -= 1
+                P.setup = False
+                Print(powerups)
 
             if P.play:
                 if inp == 'a' and P.c > 1:
@@ -499,7 +564,7 @@ try:
                     P.left()
                     for cnt in range(0, P.size+1):
                         board[P.x][P.y+cnt] = P.board_pos[cnt]
-                    Print()
+                    Print(powerups)
 
                 if inp == 'd' and P.c <= 100 - 5*P.size:
                     if P.grab:
@@ -524,7 +589,7 @@ try:
                     P.right()
                     for cnt in range(0, P.size+1):
                         board[P.x][P.y+cnt] = P.board_pos[cnt]
-                    Print()
+                    Print(powerups)
 
                 if inp == ' ':
                     P.grab = 0

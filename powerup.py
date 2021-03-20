@@ -4,11 +4,11 @@ from paddle import *
 from ball import *
 
 powerups = []
-powerups_del = []
+# powerups_del = []
 MAX_POWERUPS = 7
 bullets = []
 
-rem_time = [0,0,0,0,0,0,0]
+rem_time = [0,0,0,0,0,0,0,0]
 
 class Powerup(Obj):
 
@@ -19,40 +19,43 @@ class Powerup(Obj):
     board_pos = brickcol[0]
     active_time = 10
     
-    def isCreate(self, vx, vy):                         
+    def isCreate(self, vx, vy, powerups):                         
         """Checks if powerup is randomly created or not"""
         # prob(of powerup occuring) = a/b
         a = 1
         b = 3
         num = random.randint(1, b)
         if num <= a and len(powerups) < MAX_POWERUPS:
-            self.p_type = random.randint(0, 6)
-            self.createPower(vx, vy)
+            self.p_type = random.randint(0, 7)
+            self.createPower(vx, vy, powerups)
 
-    def createPower(self, vx, vy):                      
+    def createPower(self, vx, vy, powerups):                      
         """decide type of powerup"""
-        # if (self.p_type == 0):
-        #     power_up = Power0(self.x, self.y, vx, vy)
-        # elif (self.p_type == 1):
-        #     power_up = Power1(self.x, self.y, vx, vy)
-        # elif (self.p_type == 2):
-        #     power_up = Power2(self.x, self.y, vx, vy)
-        # elif (self.p_type == 3):
-        #     power_up = Power3(self.x, self.y, vx, vy)
-        # elif (self.p_type == 4):
-        #     power_up = Power4(self.x, self.y, vx, vy)
-        # elif (self.p_type == 5):
-        #     power_up = Power5(self.x, self.y, vx, vy)
-        # else:
-        power_up = Power6(self.x, self.y, vx, vy)
+        if (self.p_type == 0):
+            power_up = Power0(self.x, self.y, vx, vy)
+        elif (self.p_type == 1):
+            power_up = Power1(self.x, self.y, vx, vy)
+        elif (self.p_type == 2):
+            power_up = Power2(self.x, self.y, vx, vy)
+        elif (self.p_type == 3):
+            power_up = Power3(self.x, self.y, vx, vy)
+        elif (self.p_type == 4):
+            power_up = Power4(self.x, self.y, vx, vy)
+        elif (self.p_type == 5):
+            power_up = Power5(self.x, self.y, vx, vy)
+        elif (self.p_type == 6):
+           power_up = Power6(self.x, self.y, vx, vy)
+        else:
+            power_up = Power7(self.x, self.y, vx, vy)
         os.system("aplay -q sound/powerup.wav &")
         powerups.append(power_up)
 
     def update(self, pw, i):
         """update the powerup's position and destroy after set time"""
         if pw.time == 0:
-            pw.delete(pw,i)
-            powerups.remove(pw)
+            pw.delete(pw)
+            # powerups.remove(pw)
+            pw.passive = 1
             # powerups_del.append(i)
         else:
             if (pw.vx > 0):
@@ -89,7 +92,8 @@ class Powerup(Obj):
                     pw.action()
                     pw.x = pw.x+1
                 else:
-                    powerups.remove(pw)
+                    # powerups.remove(pw)
+                    pw.passive = 1
                     # powerups_del.append(i)
             elif pw.x == 31:
                 if type(pw) == Power5:  # for repeated switch of paddle.grab to 1
@@ -98,10 +102,11 @@ class Powerup(Obj):
                     pw.action()
 
                     
-    def delete(self, pw, i):
+    def delete(self, pw):
         """delete the powerup"""
         pw.undo_action()
-        powerups.remove(pw)
+        # powerups.remove(pw)
+        pw.passive = 1
         # powerups_del.append(i)
 
     def timeLeft(self,pw):
@@ -118,6 +123,8 @@ class Powerup(Obj):
             rem_time[5] = max(rem_time[5]-1,pw.time)
         elif type(pw) == Power6:
             rem_time[6] = max(rem_time[6]-1,pw.time)
+        elif type(pw) == Power7:
+            rem_time[7] = max(rem_time[7]-1,pw.time)
             
 
 class Power0(Powerup):
@@ -130,6 +137,7 @@ class Power0(Powerup):
         self.time = self.active_time
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + colors.bold + \
         colors.fg.yellow + ' <=> ' + colors.reset
 
@@ -163,6 +171,7 @@ class Power1(Powerup):
         self.time = self.active_time
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + colors.bold + \
         colors.fg.yellow + ' >=< ' + colors.reset
 
@@ -196,6 +205,7 @@ class Power2(Powerup):
         self.time = 1e9
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + ' ⊚x2 ' + colors.reset
 
     def action(self):
@@ -223,6 +233,7 @@ class Power3(Powerup):
         self.time = self.active_time
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + colors.bold + \
         colors.fg.yellow + ' >>> ' + colors.reset
 
@@ -263,6 +274,7 @@ class Power4(Powerup):
         self.time = self.active_time
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + ' ' + colors.strikethrough + \
         '>[]' + colors.reset + colors.bg.black + ' ' + colors.reset
 
@@ -289,6 +301,7 @@ class Power5(Powerup):
         self.time = self.active_time
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + colors.bold + \
         ' |_| ' + colors.reset
 
@@ -310,6 +323,7 @@ class Power6(Powerup):
         self.time = self.active_time
     
     active = 0
+    passive = 0
     board_pos = colors.bg.black + colors.bold + \
         ' ↑↑↑ ' + colors.reset
         
@@ -331,6 +345,32 @@ class Power6(Powerup):
                 board[P.x][P.y+cnt] = P.board_pos[cnt]
             P.shoot = False
             
+class Power7(Powerup):
+    """Power up for fire-ball"""
+    def __init__(self, x, y, vx, vy):
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+        self.time = self.active_time
+    
+    active = 0
+    passive = 0
+    board_pos = colors.bg.black + colors.bold + \
+        ' ♨♨♨ ' + colors.reset
+
+    def action(self):
+        for B in balls:
+            B.fire = 1
+            B.ball_type = colors.bg.yellow + colors.fg.lightgrey + '⊚' + colors.reset
+            self.active = 1
+
+    def undo_action(self):
+        if rem_time[4] == 0:
+            for B in balls:
+                B.fire = 0
+                B.ball_type = colors.fg.lightgrey + '⊚' + colors.reset
+
 class Bullet(Ball): # change for BOSS
     """Bulllet's for the shooting paddle powerup"""
     def __init__(self, x, y):

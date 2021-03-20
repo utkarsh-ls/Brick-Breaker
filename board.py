@@ -48,7 +48,7 @@ def moveBricks(board, P, balls):
     return board
 
 
-def Print():
+def Print(powerups):
     os.system('clear')
     for i in range(2):
         print("", end='\n')

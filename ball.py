@@ -18,6 +18,7 @@ class Ball(Obj):
 
     ball_type = colors.fg.lightgrey + '⊚'
     through = 0
+    fire = 0
     
     def update_block(self):
         """update ball's position in the board"""

@@ -59,19 +59,19 @@ class UFO(Obj):
             
     def engage(self, board, balls, powerups, bombs, bullets, num):
         """Creates bricks around boss if health falls below crit level"""
-        row_num = self.x + self.row_size
+        row_num = self.x + self.row_size + 2-num
         for b in balls:
             if b.x == row_num:
-                b.x = b.x + 1
+                b.x = b.x + num
         for b in powerups:
             if b.x == row_num:
-                b.x = b.x + 1
+                b.x = b.x + num
         for b in bombs:
             if b.x == row_num:
-                b.x = b.x + 1
+                b.x = b.x + num
         for b in bullets:
             if b.x == row_num:
-                b.x = b.x + 1
+                b.x = b.x + num
         for j in range(1,21):
             board[row_num][j] = brickcol[num]
 
